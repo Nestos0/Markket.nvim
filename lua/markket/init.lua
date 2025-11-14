@@ -38,7 +38,7 @@ end
 function M.setup(opts)
 	config = opts or default_config
 
-	vim.api.nvim_create_user_command("Markket", M.markket, {})
+	-- vim.api.nvim_create_user_command("Markket", M.markket, {})
 end
 
 -- Return the module
