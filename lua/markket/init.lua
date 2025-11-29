@@ -27,6 +27,12 @@ local function merge_config(firstly, secondary)
 	return firstly
 end
 
+--- @param config table user added config
+local ensure_config = function(config)
+	config = merge_config(config, default_config)
+	return config
+end
+
 M.renderer = function(opts)
 	local buf = vim.api.nvim_create_buf(false, true)
 	local win = vim.api.nvim_open_win(buf, true, opts) -- false 表示不抢夺焦点
@@ -46,13 +52,13 @@ function M.markket(config)
 		style = "minimal",
 		border = "single",
 	}
-	M.renderer(opts)
+  M.renderer(opts)
 end
 
---- @param opts table
 M.ensure_config = function(opts)
 	local config = opts or {}
 	config = merge_config(config, default_config)
+	config = ensure_config(config)
 	-- M.renderer()
 end
 
