@@ -1,23 +1,24 @@
 local M = {}
+local initial = false
+
+M.config = {}
 
 local default_config = {
 	relative = "win",
 	style = "minimal",
 	border = "single",
 	margin = {
-		up = 10,
-		left = 10,
-		right = 10,
-		down = 10,
+		x = 10,
+		y = 10,
 	},
 	dir = vim.fn.expand("~/markket.d"),
 }
 
-local function merge_config(firstly, secondary)
+local function merge_tbl(firstly, secondary)
 	firstly = firstly or {}
 	for k, v in pairs(secondary) do
 		if type(firstly[k]) == "table" and type(v) == "table" then
-			merge_config(firstly[k], v)
+			merge_tbl(firstly[k], v)
 		else
 			if firstly[k] == nil then
 				firstly[k] = v
@@ -27,10 +28,8 @@ local function merge_config(firstly, secondary)
 	return firstly
 end
 
---- @param config table user added config
-local ensure_config = function(config)
-	config = merge_config(config, default_config)
-	return config
+local ensure_config = function()
+	M.config = merge_tbl(M.config, default_config)
 end
 
 M.renderer = function(opts)
@@ -41,24 +40,30 @@ M.renderer = function(opts)
 	end, { buffer = buf, silent = true, nowait = true })
 end
 
-function M.markket(config)
+function M.markket()
+	if initial ~= true then
+		ensure_config()
+	end
+	local config = M.config
 	local ui = vim.api.nvim_list_uis()[1]
+	local width = ui.width - config.margin.x * 2
+	local height = ui.height - config.margin.y * 2
 	local opts = {
 		relative = "win",
-		row = default_config.margin.up,
-		col = default_config.margin.left,
-		width = ui.width - default_config.margin.left * 2,
-		height = ui.height - default_config.margin.up * 2,
+		row = (ui.height - height) / 2,
+		col = (ui.width - width) / 2,
+		width = width,
+		height = height,
 		style = "minimal",
 		border = "single",
 	}
-  M.renderer(opts)
+	M.renderer(opts)
 end
 
 M.setup = function(opts)
-	local config = opts or {}
-	config = ensure_config(config)
-	-- M.renderer()
+	M.config = opts or {}
+	ensure_config()
+	initial = true
 end
 
 -- Return the module
