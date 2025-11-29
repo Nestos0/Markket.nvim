@@ -55,9 +55,8 @@ function M.markket(config)
   M.renderer(opts)
 end
 
-M.ensure_config = function(opts)
+M.setup = function(opts)
 	local config = opts or {}
-	config = merge_config(config, default_config)
 	config = ensure_config(config)
 	-- M.renderer()
 end
