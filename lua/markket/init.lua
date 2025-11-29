@@ -1,44 +1,59 @@
--- Main module for the Hello World plugin
 local M = {}
-local path = require("plenary.path")
-local scan = require("plenary.scandir")
-
-local renderer = require("markket.renderer")
-local sources = require("markket.sources")
 
 local default_config = {
-	dir = vim.fn.expand("~/Markket.d"),
+	relative = "win",
+	style = "minimal",
+	border = "single",
+	margin = {
+		up = 10,
+		left = 10,
+		right = 10,
+		down = 10,
+	},
+	dir = vim.fn.expand("~/markket.d"),
 }
 
-local config = {}
-
-local function ensure_dir(opts)
-	local dir = path:new(opts.dir)
-
-	if not dir:exists() then
-		local choice = vim.fn.confirm("Create Documents(~/Markket.d)", "&Yes\n&No", 2)
-		if choice == 0 then
-			return
-		end
-		dir:mkdir({ parents = true })
-		if dir:exists() then
-			print("Dirctory Already Created!\n" .. dir:absolute())
+local function merge_config(firstly, secondary)
+	firstly = firstly or {}
+	for k, v in pairs(secondary) do
+		if type(firstly[k]) == "table" and type(v) == "table" then
+			merge_config(firstly[k], v)
+		else
+			if firstly[k] == nil then
+				firstly[k] = v
+			end
 		end
 	end
-  return dir
+	return firstly
 end
 
-function M.markket()
-	local dir = ensure_dir(opts)
-  local lines = sources.filesystem.get_ls()
-  renderer.focus(lines)
+M.renderer = function(opts)
+	local buf = vim.api.nvim_create_buf(false, true)
+	local win = vim.api.nvim_open_win(buf, true, opts) -- false 表示不抢夺焦点
+	vim.keymap.set("n", "q", function()
+		vim.api.nvim_win_close(win, true)
+	end, { buffer = buf, silent = true, nowait = true })
 end
 
--- Function to set up the plugin (Most package managers expect the plugin to have a setup function)
-function M.setup(opts)
-	config = opts or default_config
+function M.markket(config)
+	local ui = vim.api.nvim_list_uis()[1]
+	local opts = {
+		relative = "win",
+		row = default_config.margin.up,
+		col = default_config.margin.left,
+		width = ui.width - default_config.margin.left * 2,
+		height = ui.height - default_config.margin.up * 2,
+		style = "minimal",
+		border = "single",
+	}
+	M.renderer(opts)
+end
 
-	-- vim.api.nvim_create_user_command("Markket", M.markket, {})
+--- @param opts table
+M.ensure_config = function(opts)
+	local config = opts or {}
+	config = merge_config(config, default_config)
+	-- M.renderer()
 end
 
 -- Return the module
