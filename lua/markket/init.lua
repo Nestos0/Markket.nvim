@@ -38,6 +38,11 @@ M.renderer = function(opts)
 	vim.keymap.set("n", "q", function()
 		vim.api.nvim_win_close(win, true)
 	end, { buffer = buf, silent = true, nowait = true })
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+		"Hello, Neovim!",
+		"这是一个原生 API 创建的 Popup。",
+		"按 'q' 关闭窗口。",
+	})
 end
 
 function M.markket()
@@ -50,8 +55,8 @@ function M.markket()
 	local height = ui.height - config.margin.y * 2
 	local opts = {
 		relative = "win",
-		row = (ui.height - height) / 2,
-		col = (ui.width - width) / 2,
+		row = (ui.height - height) / 2 - (ui.height % 2 == 0 and 0 or 1),
+		col = (ui.width - width) / 2 - (ui.width % 2 == 0 and 0 or 1),
 		width = width,
 		height = height,
 		style = "minimal",
